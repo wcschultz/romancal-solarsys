@@ -6,6 +6,8 @@ import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
+import asdf
+
 from roman_datamodels import datamodels as rdd
 from roman_datamodels import stnode as rds
 from roman_datamodels.dqflags import group, pixel
@@ -142,6 +144,18 @@ class RampFitStep(RomanStep):
         var_poisson = output.variances[..., Variance.poisson_var]
         err = np.sqrt(var_poisson + var_rnoise)
         dq = output.dq.astype(np.uint32)
+
+        # save the group dq
+        # Store the data in an arbitrarily nested dictionary
+        dq_tree = {
+            "resultantdq": dq,
+        }
+        dq_af = asdf.AsdfFile(dq_tree)
+        dq_af.write_to("resultant_dq_test.asdf")
+        dq_af.write_to("resultant_dq_test_zlib.asdf", all_array_compression='zlib')
+        dq_af.write_to("resultant_dq_test_bzp2.asdf", all_array_compression='bzp2')
+        dq_af.write_to("resultant_dq_test_lz4.asdf", all_array_compression='lz4')
+        del dq_tree, dq_af
 
         # remove dark current contribution to slopes
         slopes -= dark_model.dark_slope * gain
