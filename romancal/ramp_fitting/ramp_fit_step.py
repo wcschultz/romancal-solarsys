@@ -145,16 +145,17 @@ class RampFitStep(RomanStep):
         err = np.sqrt(var_poisson + var_rnoise)
         dq = output.dq.astype(np.uint32)
 
+        # extract the jump detection flags
+        jump_resultant_dq = (dq & group.JUMP_DET) > 0
+        jump_resultant_dq = jump_resultant_dq.astype(np.uint8)
+
         # save the group dq
         # Store the data in an arbitrarily nested dictionary
         dq_tree = {
-            "resultantdq": dq,
+            "resultantdq": jump_resultant_dq,
         }
         dq_af = asdf.AsdfFile(dq_tree)
-        dq_af.write_to("resultant_dq_test.asdf")
-        dq_af.write_to("resultant_dq_test_zlib.asdf", all_array_compression='zlib')
         dq_af.write_to("resultant_dq_test_bzp2.asdf", all_array_compression='bzp2')
-        dq_af.write_to("resultant_dq_test_lz4.asdf", all_array_compression='lz4')
         del dq_tree, dq_af
 
         # remove dark current contribution to slopes
